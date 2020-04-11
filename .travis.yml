@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t savakatic/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run savakatic/react-test npm test  -- --coverage
+
+after_success:
+  - docker build -t savakatic/multi-client ./client
+  - docker build -t savakatic/multi-nginx ./nginx
+  - docker build -t savakatic/multi-server ./server
+  - docker build -t savakatic/multi-worker ./worker
+  
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push savakatic/multi-client
+  - docker push savakatic/multi-nginx
+  - docker push savakatic/multi-server
+  - docker push savakatic/multi-worker
+
